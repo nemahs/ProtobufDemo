@@ -36,16 +36,16 @@ class Server:
             for name in self.database.keys():
                 response.value.append(name)
         else:
-            if not response.key:
+            if not request.key:
                 response.type = Response.DATA  # Get value from key
                 t = response.data.add()
                 t.name = request.table
                 for key, value in self.database[t.name].items():
                     t.values[key] = value
             else:
-                if response.key in self.database[response.table]:
-                    response = Response.DATA
-                    response.value = self.database[request.table][response.key]
+                if request.key in self.database[request.table]:
+                    response.type = Response.DATA
+                    response.value.append(self.database[request.table][request.key])
         return response
 
     def updateData(self, request):
@@ -87,7 +87,7 @@ class Server:
                 print('Added {}.{} to table {}'.format(request.key, request.value, request.table))
                 response.type = Response.OK
             else:
-                response = self.error('Key already exists! Use PUT to update this value')
+                response = self.error('Key already exists! Use SET to update this value')
         else:
             if request.table not in self.database:
                 self.database[request.table] = dict()
@@ -133,7 +133,7 @@ class Server:
                 elif request.type == Request.POST:
                     response = self.addData(request)
                 elif request.type == Request.DELETE:
-                    response = self.deleteData()
+                    response = self.deleteData(request)
 
                 self.sendMessage(client,response)
 
